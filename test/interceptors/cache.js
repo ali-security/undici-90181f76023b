@@ -627,6 +627,107 @@ describe('Cache Interceptor', () => {
     }
   })
 
+  test('does not cache response when request has Authorization and qualified no-cache/private names Authorization with OWS', async () => {
+    for (const cacheControl of [
+      'public, max-age=60, private=" authorization"',
+      'public, max-age=60, no-cache="\tauthorization"',
+      'public, max-age=60, no-cache=authorization\t'
+    ]) {
+      let requestsToOrigin = 0
+      const server = createServer({ joinDuplicateHeaders: true }, (req, res) => {
+        requestsToOrigin++
+        res.setHeader('cache-control', cacheControl)
+        // canCacheResponse() applies the storing-responses-to-authenticated-requests
+        //  rules to the Authorization field present in the response headers
+        if (req.headers.authorization) {
+          res.setHeader('authorization', req.headers.authorization)
+        }
+        res.end(`authenticated ${requestsToOrigin}`)
+      }).listen(0)
+
+      await once(server, 'listening')
+
+      const client = new Client(`http://localhost:${server.address().port}`)
+        .compose(interceptors.cache())
+
+      try {
+        const request = {
+          origin: 'localhost',
+          method: 'GET',
+          path: '/',
+          headers: {
+            authorization: 'Bearer token123'
+          }
+        }
+
+        {
+          const res = await client.request(request)
+          equal(requestsToOrigin, 1)
+          strictEqual(await res.body.text(), 'authenticated 1')
+        }
+
+        {
+          const res = await client.request({
+            origin: 'localhost',
+            method: 'GET',
+            path: '/'
+          })
+          equal(requestsToOrigin, 2)
+          strictEqual(await res.body.text(), 'authenticated 2')
+        }
+      } finally {
+        await client.close()
+        await new Promise(resolve => server.close(resolve))
+      }
+    }
+  })
+
+  test('strips headers named by qualified no-cache/private with OWS from cached responses', async () => {
+    for (const cacheControl of [
+      'public, max-age=60, private=" x-user-token"',
+      'public, max-age=60, no-cache="\tx-user-token"',
+      'public, max-age=60, private=" x-other, x-user-token\t"'
+    ]) {
+      let requestsToOrigin = 0
+      const server = createServer({ joinDuplicateHeaders: true }, (_, res) => {
+        requestsToOrigin++
+        res.setHeader('cache-control', cacheControl)
+        res.setHeader('x-user-token', `secret ${requestsToOrigin}`)
+        res.end('asd')
+      }).listen(0)
+
+      await once(server, 'listening')
+
+      const client = new Client(`http://localhost:${server.address().port}`)
+        .compose(interceptors.cache())
+
+      try {
+        const request = {
+          origin: 'localhost',
+          method: 'GET',
+          path: '/'
+        }
+
+        {
+          const res = await client.request(request)
+          equal(requestsToOrigin, 1)
+          equal(res.headers['x-user-token'], 'secret 1')
+          strictEqual(await res.body.text(), 'asd')
+        }
+
+        {
+          const res = await client.request(request)
+          equal(requestsToOrigin, 1)
+          equal(res.headers['x-user-token'], undefined)
+          strictEqual(await res.body.text(), 'asd')
+        }
+      } finally {
+        await client.close()
+        await new Promise(resolve => server.close(resolve))
+      }
+    }
+  })
+
   test('cacheByDefault', async () => {
     let requestsToOrigin = 0
     const server = createServer({ joinDuplicateHeaders: true }, (_, res) => {
