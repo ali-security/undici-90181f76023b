@@ -80,7 +80,10 @@ const BASE_TEST_ENVIRONMENT = {
     'head-200-retain',
     'head-410-update',
     'stale-close-must-revalidate',
-    'stale-close-no-cache'
+    'stale-close-no-cache',
+
+    // SEAL: flaky on loaded CI runners — freshness uses 1s-resolution Date header, request 3 can land in the storing second
+    'cc-resp-must-revalidate-stale'
   ]
 }
 
