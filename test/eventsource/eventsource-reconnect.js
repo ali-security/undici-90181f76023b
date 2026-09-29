@@ -80,7 +80,9 @@ describe('EventSource - reconnect', () => {
 
   test('Should reconnect on with modified reconnection timeout', (t, done) => {
     t.plan(3)
-    const clock = FakeTimers.install()
+    const clock = FakeTimers.install({
+      toFake: ['setTimeout', 'clearTimeout', 'Date']
+    })
     after(() => clock.uninstall())
 
     const server = http.createServer({ joinDuplicateHeaders: true }, (req, res) => {

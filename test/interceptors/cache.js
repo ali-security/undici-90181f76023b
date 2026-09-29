@@ -170,7 +170,7 @@ describe('Cache Interceptor', () => {
 
   test('expires caching', async () => {
     const clock = FakeTimers.install({
-      shouldClearNativeTimers: true
+      toFake: ['Date']
     })
 
     let requestsToOrigin = 0
@@ -247,7 +247,7 @@ describe('Cache Interceptor', () => {
 
   test('expires caching with Etag', async () => {
     const clock = FakeTimers.install({
-      shouldClearNativeTimers: true
+      toFake: ['Date']
     })
 
     let requestsToOrigin = 0
@@ -325,7 +325,7 @@ describe('Cache Interceptor', () => {
 
   test('max-age caching', async () => {
     const clock = FakeTimers.install({
-      shouldClearNativeTimers: true
+      toFake: ['Date']
     })
 
     let requestsToOrigin = 0
@@ -389,7 +389,7 @@ describe('Cache Interceptor', () => {
 
   test('vary headers are present in revalidation request', async () => {
     const clock = FakeTimers.install({
-      shouldClearNativeTimers: true
+      toFake: ['Date']
     })
 
     let requestsToOrigin = 0
@@ -668,7 +668,7 @@ describe('Cache Interceptor', () => {
 
   test('stale-if-error (response)', async () => {
     const clock = FakeTimers.install({
-      shouldClearNativeTimers: true
+      toFake: ['Date']
     })
 
     let requestsToOrigin = 0
@@ -750,7 +750,7 @@ describe('Cache Interceptor', () => {
   describe('Client-side directives', () => {
     test('max-age', async () => {
       const clock = FakeTimers.install({
-        shouldClearNativeTimers: true
+        toFake: ['Date']
       })
 
       let requestsToOrigin = 0
@@ -811,7 +811,7 @@ describe('Cache Interceptor', () => {
 
     test('max-stale', async () => {
       const clock = FakeTimers.install({
-        shouldClearNativeTimers: true
+        toFake: ['Date']
       })
 
       let requestsToOrigin = 0
@@ -884,7 +884,7 @@ describe('Cache Interceptor', () => {
 
     test('min-fresh', async () => {
       const clock = FakeTimers.install({
-        shouldClearNativeTimers: true
+        toFake: ['Date']
       })
 
       let requestsToOrigin = 0
@@ -1102,7 +1102,7 @@ describe('Cache Interceptor', () => {
 
     test('stale-if-error', async () => {
       const clock = FakeTimers.install({
-        shouldClearNativeTimers: true
+        toFake: ['Date']
       })
 
       let requestsToOrigin = 0

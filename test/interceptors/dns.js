@@ -609,7 +609,7 @@ test('Should automatically resolve IPs (dual stack disabled - 6)', async t => {
 test('Should we handle TTL (4)', async t => {
   t = tspl(t, { plan: 10 })
 
-  const clock = FakeTimers.install()
+  const clock = FakeTimers.install({ toFake: ['Date'] })
   let counter = 0
   let lookupCounter = 0
   const server = createServer({ joinDuplicateHeaders: true })
@@ -712,7 +712,7 @@ test('Should we handle TTL (4)', async t => {
 test('Should we handle TTL (6)', async t => {
   t = tspl(t, { plan: 10 })
 
-  const clock = FakeTimers.install()
+  const clock = FakeTimers.install({ toFake: ['Date'] })
   let counter = 0
   let lookupCounter = 0
   const server = createServer({ joinDuplicateHeaders: true })
@@ -817,7 +817,7 @@ test('Should we handle TTL (6)', async t => {
 test('Should set lowest TTL between resolved and option maxTTL', async t => {
   t = tspl(t, { plan: 9 })
 
-  const clock = FakeTimers.install()
+  const clock = FakeTimers.install({ toFake: ['Date'] })
   let lookupCounter = 0
   const server = createServer({ joinDuplicateHeaders: true })
   const requestOptions = {
@@ -1193,7 +1193,7 @@ test('Should use all dns entries (dual stack disabled - 6)', async t => {
 test('Should handle single family resolved (dual stack)', async t => {
   t = tspl(t, { plan: 7 })
 
-  const clock = FakeTimers.install()
+  const clock = FakeTimers.install({ toFake: ['Date'] })
   let counter = 0
   let lookupCounter = 0
   const server = createServer({ joinDuplicateHeaders: true })
@@ -1284,7 +1284,7 @@ test('Should handle single family resolved (dual stack)', async t => {
 test('Should prefer affinity (dual stack - 4)', async t => {
   t = tspl(t, { plan: 10 })
 
-  const clock = FakeTimers.install()
+  const clock = FakeTimers.install({ toFake: ['Date'] })
   let counter = 0
   let lookupCounter = 0
   const server = createServer({ joinDuplicateHeaders: true })
@@ -1386,7 +1386,7 @@ test('Should prefer affinity (dual stack - 4)', async t => {
 test('Should prefer affinity (dual stack - 6)', async t => {
   t = tspl(t, { plan: 10 })
 
-  const clock = FakeTimers.install()
+  const clock = FakeTimers.install({ toFake: ['Date'] })
   let counter = 0
   let lookupCounter = 0
   const server = createServer({ joinDuplicateHeaders: true })
