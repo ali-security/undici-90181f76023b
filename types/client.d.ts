@@ -102,6 +102,8 @@ export declare namespace Client {
      * @default 524288
      */
     connectionWindowSize?: number;
+    /** WebSocket-specific configuration options. */
+    webSocket?: WebSocketOptions;
   }
   export interface SocketInfo {
     localAddress?: string
@@ -112,6 +114,13 @@ export declare namespace Client {
     timeout?: number
     bytesWritten?: number
     bytesRead?: number
+  }
+  export interface WebSocketOptions {
+    /**
+     * Maximum number of fragments in a message. Set to 0 to disable the limit.
+     * @default 131072
+     */
+    maxFragments?: number;
   }
 }
 
