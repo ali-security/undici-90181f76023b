@@ -728,6 +728,101 @@ describe('Cache Interceptor', () => {
     }
   })
 
+  test('does not cache shared response with empty qualified private directive', async () => {
+    for (const cacheControl of [
+      'public, max-age=60, private=""',
+      'public, max-age=60, private=","',
+      'public, max-age=60, private="   "'
+    ]) {
+      let requestsToOrigin = 0
+      const server = createServer({ joinDuplicateHeaders: true }, (req, res) => {
+        requestsToOrigin++
+        const who = req.headers.authorization || '(no-auth)'
+        res.setHeader('cache-control', cacheControl)
+        res.setHeader('set-cookie', `session=secret-for-${who}`)
+        res.end(`authenticated ${who} ${requestsToOrigin}`)
+      }).listen(0)
+
+      await once(server, 'listening')
+
+      const client = new Client(`http://localhost:${server.address().port}`)
+        .compose(interceptors.cache())
+
+      try {
+        {
+          const res = await client.request({
+            origin: 'localhost',
+            method: 'GET',
+            path: '/',
+            headers: {
+              authorization: 'Bearer token123'
+            }
+          })
+          equal(requestsToOrigin, 1)
+          strictEqual(await res.body.text(), 'authenticated Bearer token123 1')
+        }
+
+        {
+          const res = await client.request({
+            origin: 'localhost',
+            method: 'GET',
+            path: '/'
+          })
+          equal(requestsToOrigin, 2)
+          strictEqual(await res.body.text(), 'authenticated (no-auth) 2')
+        }
+      } finally {
+        await client.close()
+        await new Promise(resolve => server.close(resolve))
+      }
+    }
+  })
+
+  test('revalidates cached response with empty qualified no-cache directive', async () => {
+    for (const cacheControl of [
+      'public, max-age=60, no-cache=""',
+      'public, max-age=60, no-cache=","',
+      'public, max-age=60, no-cache="   "'
+    ]) {
+      let requestsToOrigin = 0
+      const server = createServer({ joinDuplicateHeaders: true }, (_, res) => {
+        requestsToOrigin++
+        res.setHeader('cache-control', cacheControl)
+        res.end(`response ${requestsToOrigin}`)
+      }).listen(0)
+
+      await once(server, 'listening')
+
+      const client = new Client(`http://localhost:${server.address().port}`)
+        .compose(interceptors.cache())
+
+      try {
+        const request = {
+          origin: 'localhost',
+          method: 'GET',
+          path: '/'
+        }
+
+        {
+          const res = await client.request(request)
+          equal(requestsToOrigin, 1)
+          strictEqual(await res.body.text(), 'response 1')
+        }
+
+        // An empty qualified no-cache is unqualified no-cache, so the stored
+        //  response must be revalidated with the origin before reuse
+        {
+          const res = await client.request(request)
+          equal(requestsToOrigin, 2)
+          strictEqual(await res.body.text(), 'response 2')
+        }
+      } finally {
+        await client.close()
+        await new Promise(resolve => server.close(resolve))
+      }
+    }
+  })
+
   test('cacheByDefault', async () => {
     let requestsToOrigin = 0
     const server = createServer({ joinDuplicateHeaders: true }, (_, res) => {
